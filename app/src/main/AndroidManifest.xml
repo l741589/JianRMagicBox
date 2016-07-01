@@ -21,6 +21,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name="com.bigzhao.jianrmagicbox.MagicBoxService">
+            <intent-filter>
+                <action android:name="com.bigzhao.jianrmagicbox.action.SERVICE"/>
+            </intent-filter>
+        </service>
+        <receiver android:name=".MagicBoxReciever">
+            <intent-filter>
+                <action android:name="com.bigzhao.jianrmagicbox.action.RECEIVER"/>
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
