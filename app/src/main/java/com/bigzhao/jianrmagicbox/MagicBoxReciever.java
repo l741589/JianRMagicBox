@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+
 /**
  * Created by Roy on 16-6-12.
  */
@@ -28,7 +30,7 @@ public class MagicBoxReciever extends BroadcastReceiver{
                 binder.action(action, args);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorHandler.log(e);
         }
     }
 }

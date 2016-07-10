@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+
 /**
  * Created by Roy on 16-4-30.
  */
@@ -12,6 +14,7 @@ public class LoaderActivity extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        ErrorHandler.init(this);
         IActivity ia=MagicBox.getActivityDelegate(this);
         if (ia.action()) return;
         try {
@@ -20,8 +23,9 @@ public class LoaderActivity extends Activity{
             startActivity(intent);
             finish();
         }catch (Exception e){
-            e.printStackTrace();
+            ErrorHandler.log(e);
         }
+        //throw new RuntimeException("test");
     }
 
 }

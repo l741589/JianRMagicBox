@@ -7,10 +7,14 @@ import android.text.TextUtils;
 import com.bigzhao.jianrmagicbox.IOUtils;
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.MagicBoxBinder;
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+import com.bigzhao.jianrmagicbox.errorlog.Logger;
+import com.bigzhao.jianrmagicbox.errorlog.SelfCheck;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Created by Roy on 16-6-15.
@@ -84,10 +88,20 @@ public class DefaultBinderImpl extends MagicBoxBinder{
             copy(args[0], args[1]);
         } else if ("del".equalsIgnoreCase(action)||"delete".equalsIgnoreCase(action)) {
             del(args[0]);
+        } else if ("getFile".equalsIgnoreCase(action)) {
+            return getFile(args[0]);
+        } else if ("getFilePath".equalsIgnoreCase(action)) {
+            File f=getFile(args[0]);
+            return f.exists()?f.getCanonicalPath():f.getAbsolutePath();
         } else if ("list".equalsIgnoreCase(action)) {
             return list(args[0]);
         } else if ("version".equalsIgnoreCase(action)) {
             MagicBox.logi(Integer.toHexString(getVersion()));
+        } else if ("selfcheck".equalsIgnoreCase(action)) {
+            String s=SelfCheck.run(args[0], Arrays.copyOfRange(args,1,args.length));
+            ErrorHandler.log(s);
+            MagicBox.logi(s);
+            return s;
         }
         return null;
     }

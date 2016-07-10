@@ -4,6 +4,7 @@ import android.text.TextUtils;
 
 import com.bigzhao.jianrmagicbox.IOUtils;
 import com.bigzhao.jianrmagicbox.MagicBox;
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,10 +23,10 @@ public class SoundMapBuilder {
 
     public String build()  throws Exception{
         File base = (File) MagicBox.getBinder(MagicBox.application).action("getFile", "magicbox:CV");
-        try {loadPackage(base);}catch (Throwable e){e.printStackTrace();}
+        try {loadPackage(base);}catch (Throwable e){ErrorHandler.log(e);}
         base = (File) MagicBox.getBinder(MagicBox.application).action("getFile", "inner_magicbox:CV");
-        try {loadPackage(base);}catch (Throwable e){e.printStackTrace();}
-        try{loadAssets();}catch (Throwable e){e.printStackTrace();}
+        try {loadPackage(base);}catch (Throwable e){ErrorHandler.log(e);}
+        try{loadAssets();}catch (Throwable e){ErrorHandler.log(e);}
         JSONObject json = new JSONObject();
         json.put("map", map);
         String ret=json.toString();

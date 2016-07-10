@@ -1,9 +1,8 @@
 package com.bigzhao.jianrmagicbox;
 
-import android.text.TextUtils;
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -17,7 +16,7 @@ public class IOUtils {
         try {
             if (closeable != null) closeable.close();
         }catch (IOException e){
-            e.printStackTrace();
+            ErrorHandler.log(e);
         }
     }
     public static byte[] readBytes(InputStream is) throws IOException {

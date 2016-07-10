@@ -21,7 +21,7 @@ import java.util.zip.ZipFile;
  */
 public class BinderImpl extends DefaultBinderImpl  {
 
-    public static int version = 0x0100000C;
+    public static int version = 0x01000100;
 
     public BinderImpl(Context context) {
         super(context);
@@ -42,10 +42,6 @@ public class BinderImpl extends DefaultBinderImpl  {
             del(args[0]);
         } else if ("install_cv".equalsIgnoreCase(action)) {
             install_cv(args[0], args[1]);
-        } else if ("getFile".equalsIgnoreCase(action)) {
-            return getFile(args[0]);
-        } else if ("getFilePath".equalsIgnoreCase(action)) {
-            return getFile(args[0]).getCanonicalPath();
         } else if ("buildSoundMap".equals(action)) {
             return new SoundMapBuilder().build();
         } else if ("getNativePath".equalsIgnoreCase(action)) {
@@ -59,7 +55,7 @@ public class BinderImpl extends DefaultBinderImpl  {
     }
 
     private String doGetVersionMoreArgs() {
-        return String.format("&imei=%s",((TelephonyManager) MagicBox.application.getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId());
+        return "";
     }
 
 

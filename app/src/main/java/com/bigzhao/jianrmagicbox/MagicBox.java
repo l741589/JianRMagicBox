@@ -4,16 +4,19 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.bigzhao.jianrmagicbox.defaultmodule.DefaultActivityImpl;
 import com.bigzhao.jianrmagicbox.defaultmodule.DefaultBinderImpl;
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+import com.bigzhao.jianrmagicbox.util.MergeIterable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-
-import dalvik.system.DexClassLoader;
+import java.io.PrintStream;
 
 /**
  * Created by Roy on 16-6-12.
@@ -29,6 +32,16 @@ public class MagicBox {
     private static ClassLoader classLoader;
     public static Context application;
     private static boolean initialized=false;
+    public static String serverList[]={
+            "jianr.bigzhao.com",
+            "jianr.bigzhao.com:8080",
+            "www.yutou233.cn:3000",
+            "jianr.yutou233.cn",
+    };
+
+    public static MagicBoxBinder safeGetBinder() {
+        return magicBoxBinder;
+    }
 
     public static IActivity getActivityDelegate(Activity context){
         try {
@@ -36,7 +49,7 @@ public class MagicBox {
             if (activity==null) activity=(IActivity)classLoader.loadClass("com.bigzhao.jianrmagicbox.module.ActivityImpl").getConstructor(Activity.class).newInstance(context);
             return activity;
         }catch (Exception e){
-            e.printStackTrace();
+            ErrorHandler.log(e);
             return activity=new DefaultActivityImpl();
         }finally {
             MagicBox.logi("get IActivity:"+ activity);
@@ -48,7 +61,7 @@ public class MagicBox {
             if (magicBoxBinder==null) magicBoxBinder=(MagicBoxBinder)classLoader.loadClass("com.bigzhao.jianrmagicbox.module.BinderImpl").getConstructor(Context.class).newInstance(context);
             return magicBoxBinder;
         }catch (Throwable e){
-            e.printStackTrace();
+            ErrorHandler.log(e);
             return magicBoxBinder=new DefaultBinderImpl(context);
         }finally {
             MagicBox.logi("get IMagicBoxBinder:"+ magicBoxBinder);
@@ -90,7 +103,7 @@ public class MagicBox {
             initModule(context);
             createClassLoader();
         }catch (Exception e){
-            e.printStackTrace();
+            ErrorHandler.log(e);
         }
         new UpdateManager(context).execute();
     }
@@ -129,5 +142,41 @@ public class MagicBox {
         ConnectivityManager connectivityManager = (ConnectivityManager)application.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo wifiNetworkInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         return wifiNetworkInfo.isConnected();
+    }
+
+    public static String getDeviceId(){
+        if (application==null) return null;
+        return ((TelephonyManager)application.getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+    }
+
+    public static String exceptionToString(Throwable t){
+        ByteArrayOutputStream os=new ByteArrayOutputStream();
+        PrintStream ps=new PrintStream(os);
+        ps.println(t.getMessage());
+        while(t!=null){
+            t.printStackTrace(ps);
+            if (t.getCause()==t) {
+                ps.println("...");
+                break;
+            }
+            t=t.getCause();
+        }
+        String s=os.toString();
+        IOUtils.closeQuietly(os);
+        IOUtils.closeQuietly(ps);
+        return s;
+    }
+
+    public static Iterable<String> getServerList(){
+        return new MergeIterable<String>(MagicBox.getBinder(application).moreServerList(),MagicBox.serverList);
+    }
+
+    public static String versionString(int version){
+        return String.format("%d.%d.%d.%d",
+                version/(1<<24)%256,
+                version/(1<<16)%256,
+                version/(1<<8)%256,
+                version%256
+                );
     }
 }

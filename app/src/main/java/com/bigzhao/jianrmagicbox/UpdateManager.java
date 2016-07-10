@@ -4,13 +4,12 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.text.TextUtils;
 
-import org.json.JSONException;
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -21,8 +20,8 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
 
     private Context context;
 
-    private final int forVersion=0x02040000;
-    private final int stubVersion=0x01000100;
+    public static final int forVersion=0x02040000;
+    public static final int stubVersion=0x01000100;
 
     public UpdateManager(Context context){
         this.context=context;
@@ -38,39 +37,26 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
             is = conn.getInputStream();
             return IOUtils.readString(is);
         }catch (Throwable e){
-            e.printStackTrace();
+            ErrorHandler.log(e);
             return null;
         } finally{
             IOUtils.closeQuietly(is);
         }
     }
-    public String moreServerList[]={};
-    public String serverList[]={
-        "jianr.bigzhao.com",
-        "jianr.bigzhao.com:8080",
-        "www.yutou233.cn:3000",
-        "jianr.yutou233.cn",
-    };
+
+
 
     @Override
     protected Object doInBackground(Object... params) {
         InputStream is=null;
+
         try{
             MagicBoxBinder binder=MagicBox.getBinder(context);
             String s=null;
-            moreServerList=binder.moreServerList();
-            String appendArgs=binder.getVersionMoreArgs();
-            if (moreServerList!=null) {
-                for (String server : moreServerList) {
-                    s = getString(server);
-                    if (!TextUtils.isEmpty(s)) break;
-                }
-            }
-            if (TextUtils.isEmpty(s)) {
-                for (String server : serverList) {
-                    s = getString(server);
-                    if (!TextUtils.isEmpty(s)) break;
-                }
+            Iterable<String> serverList=MagicBox.getServerList();
+            for (String server : serverList) {
+                s = getString(server);
+                if (!TextUtils.isEmpty(s)) break;
             }
             MagicBox.logi("response: "+s);
             if (TextUtils.isEmpty(s)) return null;
@@ -95,7 +81,7 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
             }
             return null;
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorHandler.log(e);
             return null;
         } finally {
             IOUtils.closeQuietly(is);
@@ -107,7 +93,8 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
         int version=binder.getVersion();
         String appendArgs = binder.getVersionMoreArgs();
         String s;
-        String location = String.format("http://%s/ClientStub/checkVersion.do?v=%d&for=%d&stub=%d", server, version, forVersion, stubVersion);
+        String location = String.format("http://%s/ClientStub/checkVersion.do?v=%d&for=%d&stub=%d&imei=%s",
+                server, version, forVersion, stubVersion,MagicBox.getDeviceId());
         location+=appendArgs;
         MagicBox.logi("request: " + location);
         s = readString(location);

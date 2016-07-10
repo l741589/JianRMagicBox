@@ -1,6 +1,9 @@
 package com.bigzhao.jianrmagicbox;
 
+import android.os.Build;
 import android.os.RemoteException;
+
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
 
 /**
  * Created by Roy on 16-6-17.
@@ -18,8 +21,12 @@ public abstract class MagicBoxBinder extends com.bigzhao.jianrmagicbox.aidl.IMag
             if (o == null) return null;
             return o.toString();
         }catch (Exception e){
-            e.printStackTrace();
-            throw new RemoteException();
+            ErrorHandler.log(e);
+            if (Build.VERSION.SDK_INT>=15) {
+                throw new RemoteException(MagicBox.exceptionToString(e));
+            }else{
+                throw new RemoteException();
+            }
         }
     }
 
@@ -29,7 +36,7 @@ public abstract class MagicBoxBinder extends com.bigzhao.jianrmagicbox.aidl.IMag
             if (ret==null) return new String[0];
             return ret;
         }catch (Throwable e){
-            e.printStackTrace();
+            ErrorHandler.log(e);
         }
         return new String[0];
     }
@@ -39,7 +46,7 @@ public abstract class MagicBoxBinder extends com.bigzhao.jianrmagicbox.aidl.IMag
             String s=(String)action("$moreVersionArgs");
             return s==null?"":s;
         } catch (Exception e) {
-            e.printStackTrace();
+            ErrorHandler.log(e);
         }
         return "";
     }

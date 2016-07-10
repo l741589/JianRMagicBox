@@ -1,8 +1,6 @@
 package com.bigzhao.jianrmagicbox;
 
-import android.util.Log;
-
-import java.io.File;
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
 
 /**
  * Created by Roy on 16-6-2.
@@ -12,7 +10,7 @@ public class FakeCode {
         try {
             CppInterface.load();
         }catch (Exception e){
-            e.printStackTrace();
+            ErrorHandler.log(e);
         }
     }
 }
