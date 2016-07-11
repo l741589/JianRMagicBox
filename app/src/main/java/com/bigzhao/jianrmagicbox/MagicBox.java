@@ -1,6 +1,7 @@
 package com.bigzhao.jianrmagicbox;
 
 import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -22,6 +23,8 @@ import java.io.PrintStream;
  * Created by Roy on 16-6-12.
  */
 public class MagicBox {
+    public static final int forVersion=0x02040000;
+    public static final int stubVersion=0x01000200;
     String ACTION_SERVICE="com.bigzhao.jianrmagicbox.action.SERVICE";
     String ACTION_RECEIVER="com.bigzhao.jianrmagicbox.action.RECEIVER";
 
@@ -97,6 +100,7 @@ public class MagicBox {
     }
 
     private static void init(Context context){
+        initContext(context);
         if (initialized) return;
         initialized=true;
         try {
@@ -108,10 +112,17 @@ public class MagicBox {
         new UpdateManager(context).execute();
     }
 
+    private static void initContext(Context context) {
+        if (application!=null) return;
+        if (context==null) throw new RuntimeException("null Context");
+        if (context instanceof Application) application=context;
+        else if (context.getApplicationContext()!=null) application=context.getApplicationContext();
+    }
+
     private static void initModule(Context context) throws IOException {
         InputStream is = null;
         try {
-            application = context.getApplicationContext();
+            initContext(context);
             classLoader = context.getClassLoader();
             MagicBox.FILES_DIR = context.getFilesDir();
             File module = new File(context.getFilesDir(), "MagicBox/module");

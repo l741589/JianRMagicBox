@@ -21,7 +21,7 @@ import java.util.zip.ZipFile;
  */
 public class BinderImpl extends DefaultBinderImpl  {
 
-    public static int version = 0x01000100;
+    public static int version = MagicBox.stubVersion;
 
     public BinderImpl(Context context) {
         super(context);

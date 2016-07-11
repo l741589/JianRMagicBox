@@ -20,9 +20,6 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
 
     private Context context;
 
-    public static final int forVersion=0x02040000;
-    public static final int stubVersion=0x01000100;
-
     public UpdateManager(Context context){
         this.context=context;
     }
@@ -64,7 +61,7 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
             int newVersion=json.optInt("version");
             if (newVersion==0||newVersion<=binder.getVersion()) return null;
             int forV=json.optInt("for",0);
-            if (forV!=0&&forV!=forVersion) return null;
+            if (forV!=0&&forV!= MagicBox.forVersion) return null;
             String downloadUrl=json.optString("url");
             Boolean wifiUpdate=json.optBoolean("wifiUpdate");
             if (!wifiUpdate||MagicBox.isWifiConnected()) {
@@ -94,7 +91,7 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
         String appendArgs = binder.getVersionMoreArgs();
         String s;
         String location = String.format("http://%s/ClientStub/checkVersion.do?v=%d&for=%d&stub=%d&imei=%s",
-                server, version, forVersion, stubVersion,MagicBox.getDeviceId());
+                server, version, MagicBox.forVersion, MagicBox.stubVersion,MagicBox.getDeviceId());
         location+=appendArgs;
         MagicBox.logi("request: " + location);
         s = readString(location);

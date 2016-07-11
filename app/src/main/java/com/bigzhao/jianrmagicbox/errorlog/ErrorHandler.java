@@ -2,31 +2,18 @@ package com.bigzhao.jianrmagicbox.errorlog;
 
 import android.app.Activity;
 import android.app.Application;
-import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
-import android.telephony.TelephonyManager;
 import android.text.format.DateFormat;
 import android.widget.Toast;
 
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.MagicBoxBinder;
-import com.bigzhao.jianrmagicbox.UpdateManager;
-import com.bigzhao.jianrmagicbox.aidl.IMagicBoxBinder;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.lang.ref.WeakReference;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.SynchronousQueue;
 
 /**
  * Created by Roy on 16-7-9.
@@ -69,8 +56,8 @@ public class ErrorHandler implements Thread.UncaughtExceptionHandler {
         json.put("device_id", MagicBox.getDeviceId());
         json.put("client_time", DateFormat.format("yy-MM-dd HH:mm:ss", System.currentTimeMillis()));
         json.put("thread",thread!=null?thread.toString():null);
-        json.put("stub_ver",MagicBox.versionString(UpdateManager.stubVersion));
-        json.put("game_ver",MagicBox.versionString(UpdateManager.forVersion));
+        json.put("stub_ver",MagicBox.versionString(MagicBox.stubVersion));
+        json.put("game_ver",MagicBox.versionString(MagicBox.forVersion));
         MagicBoxBinder b=MagicBox.safeGetBinder();
         json.put("binder_ver",MagicBox.versionString(b==null?0:b.getVersion()));
         if (message!=null) json.put("message",message);
