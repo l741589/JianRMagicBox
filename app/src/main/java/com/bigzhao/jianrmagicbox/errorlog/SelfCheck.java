@@ -2,6 +2,7 @@ package com.bigzhao.jianrmagicbox.errorlog;
 
 import android.os.Environment;
 
+import com.bigzhao.jianrmagicbox.App;
 import com.bigzhao.jianrmagicbox.MagicBox;
 
 import java.io.File;
@@ -66,7 +67,7 @@ public class SelfCheck {
 
     public static String checkModule(){
         StringBuilder sb=new StringBuilder();
-        File module=goInto(sb,true, MagicBox.application.getFilesDir(),"MagicBox","module");
+        File module=goInto(sb, true, App.getApplication().getFilesDir(),"MagicBox","module");
         checkChildren(sb,false,module,"classes.dex","libMagicBox.so");
         return sb.toString();
     }
@@ -85,10 +86,10 @@ public class SelfCheck {
     public static String tree(){
         StringBuilder sb=new StringBuilder();
         sb.append("inner:\n");
-        tree(sb,MagicBox.application.getFilesDir());
+        tree(sb,App.getApplication().getFilesDir());
         if (Environment.getExternalStorageState().equals(android.os.Environment.MEDIA_MOUNTED)){
             sb.append("sdcard:\n");
-            tree(sb,MagicBox.application.getExternalFilesDir(null));
+            tree(sb,App.getApplication().getExternalFilesDir(null));
         }
         return sb.toString();
     }

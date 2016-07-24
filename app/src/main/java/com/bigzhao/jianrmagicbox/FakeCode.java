@@ -9,7 +9,7 @@ public class FakeCode {
     public static void loadNative(){
         try {
             CppInterface.load();
-        }catch (Exception e){
+        }catch (Throwable e){
             ErrorHandler.log(e);
         }
     }

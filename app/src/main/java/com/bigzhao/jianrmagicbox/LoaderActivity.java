@@ -14,8 +14,7 @@ public class LoaderActivity extends Activity{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        MagicBox.application=getApplication();
-        ErrorHandler.init(this);
+
         IActivity ia=MagicBox.getActivityDelegate(this);
         if (ia.action()) return;
         try {

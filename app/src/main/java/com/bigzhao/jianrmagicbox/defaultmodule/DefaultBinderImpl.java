@@ -4,12 +4,12 @@ import android.content.Context;
 import android.os.Environment;
 import android.text.TextUtils;
 
-import com.bigzhao.jianrmagicbox.IOUtils;
+import com.bigzhao.jianrmagicbox.util.IOUtils;
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.MagicBoxBinder;
 import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
-import com.bigzhao.jianrmagicbox.errorlog.Logger;
 import com.bigzhao.jianrmagicbox.errorlog.SelfCheck;
+import com.bigzhao.jianrmagicbox.util.V;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -24,12 +24,12 @@ public class DefaultBinderImpl extends MagicBoxBinder{
     protected Context context;
 
     public DefaultBinderImpl(Context context){
-        this.context=context;
+        this.context= context;
     }
 
     @Override
     public int getVersion() {
-        return 1;
+        return V.BASE;
     }
 
     public File getFile(String path){

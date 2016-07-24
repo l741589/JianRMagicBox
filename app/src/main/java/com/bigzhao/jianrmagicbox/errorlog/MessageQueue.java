@@ -1,5 +1,6 @@
 package com.bigzhao.jianrmagicbox.errorlog;
 
+import com.bigzhao.jianrmagicbox.App;
 import com.bigzhao.jianrmagicbox.MagicBox;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -49,7 +50,7 @@ public class MessageQueue implements Runnable{
                 Runnable r = queue.poll();
                 if (r == null) continue;
                 r.run();
-                if (queue.isEmpty()&&ErrorHandler.getCurrentActivity()==null) return;
+                if (queue.isEmpty()&& App.getCurrentActivity()==null) return;
             }
         }finally {
             MagicBox.logi("MessageQueue Stopped");

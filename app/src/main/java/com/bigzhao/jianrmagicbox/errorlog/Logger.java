@@ -1,10 +1,6 @@
 package com.bigzhao.jianrmagicbox.errorlog;
 
-import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
-
-import com.bigzhao.jianrmagicbox.IOUtils;
+import com.bigzhao.jianrmagicbox.util.IOUtils;
 import com.bigzhao.jianrmagicbox.MagicBox;
 
 import org.json.JSONObject;
@@ -13,7 +9,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Created by Roy on 16-7-9.

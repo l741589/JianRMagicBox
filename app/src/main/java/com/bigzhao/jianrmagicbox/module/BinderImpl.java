@@ -1,18 +1,24 @@
 package com.bigzhao.jianrmagicbox.module;
 
 import android.content.Context;
-import android.telephony.TelephonyManager;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.text.TextUtils;
 
+import com.bigzhao.jianrmagicbox.App;
 import com.bigzhao.jianrmagicbox.MagicBox;
-import com.bigzhao.jianrmagicbox.IOUtils;
+import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+import com.bigzhao.jianrmagicbox.util.IOUtils;
 import com.bigzhao.jianrmagicbox.defaultmodule.DefaultBinderImpl;
+import com.bigzhao.jianrmagicbox.util.V;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -21,8 +27,6 @@ import java.util.zip.ZipFile;
  */
 public class BinderImpl extends DefaultBinderImpl  {
 
-    public static int version = MagicBox.stubVersion;
-
     public BinderImpl(Context context) {
         super(context);
         MagicBox.logi("Binder Created");
@@ -30,7 +34,7 @@ public class BinderImpl extends DefaultBinderImpl  {
 
     @Override
     public int getVersion() {
-        return version;
+        return V.BINDER;
     }
 
     @Override
@@ -48,6 +52,10 @@ public class BinderImpl extends DefaultBinderImpl  {
             return getNativePath();
         }else if ("$moreVersionArgs".equalsIgnoreCase(action)){
             return doGetVersionMoreArgs();
+        } else if ("logError".equalsIgnoreCase(action)) {
+            if (args.length > 0) ErrorHandler.logNative(args[0]);
+        } else if ("isSignatureValid".equalsIgnoreCase(action)){
+            return checkSignature()?"1":"0";
         } else {
             return super.action(action, args);
         }
@@ -80,6 +88,26 @@ public class BinderImpl extends DefaultBinderImpl  {
 
     public String getNativePath(){
         return new File(MagicBox.FILES_DIR,"MagicBox/module/libMagicBox.so").getAbsolutePath();
+    }
+
+    public static boolean checkSignature() {
+        String pkgname = App.getApplication().getPackageName();
+        try {
+            PackageInfo packageInfo = App.getApplication().getPackageManager().getPackageInfo(pkgname, PackageManager.GET_SIGNATURES);
+            for (Signature signature : packageInfo.signatures) {
+                String sig=signature.toCharsString();
+                if (!V.SIGNATURE.equalsIgnoreCase(sig)){
+                    MagicBox.logi("INVALID SIGNATURE: " + sig);
+                    return false;
+                }else{
+                    MagicBox.logi("SIGNATURE: " + sig);
+                }
+            }
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+        return true;
     }
 
 }

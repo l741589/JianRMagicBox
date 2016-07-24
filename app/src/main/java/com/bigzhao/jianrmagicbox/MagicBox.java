@@ -3,6 +3,9 @@ package com.bigzhao.jianrmagicbox;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.telephony.TelephonyManager;
@@ -11,7 +14,13 @@ import android.util.Log;
 import com.bigzhao.jianrmagicbox.defaultmodule.DefaultActivityImpl;
 import com.bigzhao.jianrmagicbox.defaultmodule.DefaultBinderImpl;
 import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+import com.bigzhao.jianrmagicbox.util.IOUtils;
 import com.bigzhao.jianrmagicbox.util.MergeIterable;
+import com.bigzhao.jianrmagicbox.util.V;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -23,8 +32,7 @@ import java.io.PrintStream;
  * Created by Roy on 16-6-12.
  */
 public class MagicBox {
-    public static final int forVersion=0x02040000;
-    public static final int stubVersion=0x01000200;
+
     String ACTION_SERVICE="com.bigzhao.jianrmagicbox.action.SERVICE";
     String ACTION_RECEIVER="com.bigzhao.jianrmagicbox.action.RECEIVER";
 
@@ -33,8 +41,8 @@ public class MagicBox {
     private static MagicBoxBinder magicBoxBinder;
     private static IActivity activity;
     private static ClassLoader classLoader;
-    public static Context application;
     private static boolean initialized=false;
+
     public static String serverList[]={
             "jianr.bigzhao.com",
             "jianr.bigzhao.com:8080",
@@ -48,24 +56,24 @@ public class MagicBox {
 
     public static IActivity getActivityDelegate(Activity context){
         try {
-            init(context);
+            init();
             if (activity==null) activity=(IActivity)classLoader.loadClass("com.bigzhao.jianrmagicbox.module.ActivityImpl").getConstructor(Activity.class).newInstance(context);
             return activity;
         }catch (Exception e){
             ErrorHandler.log(e);
-            return activity=new DefaultActivityImpl();
+            return activity=new DefaultActivityImpl(context);
         }finally {
             MagicBox.logi("get IActivity:"+ activity);
         }
     }
-    public static MagicBoxBinder getBinder(Context context){
+    public static MagicBoxBinder getBinder(){
         try {
-            init(context);
-            if (magicBoxBinder==null) magicBoxBinder=(MagicBoxBinder)classLoader.loadClass("com.bigzhao.jianrmagicbox.module.BinderImpl").getConstructor(Context.class).newInstance(context);
+            init();
+            if (magicBoxBinder==null) magicBoxBinder=(MagicBoxBinder)classLoader.loadClass("com.bigzhao.jianrmagicbox.module.BinderImpl").getConstructor(Context.class).newInstance(App.getApplication());
             return magicBoxBinder;
         }catch (Throwable e){
             ErrorHandler.log(e);
-            return magicBoxBinder=new DefaultBinderImpl(context);
+            return magicBoxBinder=new DefaultBinderImpl(App.getApplication());
         }finally {
             MagicBox.logi("get IMagicBoxBinder:"+ magicBoxBinder);
         }
@@ -80,18 +88,18 @@ public class MagicBox {
     }
 
     private static void createClassLoader() throws IOException {
-        if (application.getClassLoader()!=classLoader) return;
+        if (App.getApplication().getClassLoader()!=classLoader) return;
         MagicBox.logi("Creating ClassLoader");
         File dex=new File(FILES_DIR,"MagicBox/module/classes.dex");
         if (!dex.exists()) return;
         File dexPath=dex.getParentFile();
         File dexoptPath=new File(dexPath,"opt");
         if (!dexoptPath.exists()) dexoptPath.mkdirs();
-        MagicBox.logi("SysClassLoader:"+application.getClassLoader());
+        MagicBox.logi("SysClassLoader:"+App.getApplication().getClassLoader());
         classLoader=new FakeClassLoader(dex.getCanonicalPath(),
                 dexoptPath.getCanonicalPath(),
                 dexPath.getCanonicalPath(),
-                application.getClassLoader());
+                App.getApplication().getClassLoader());
         MagicBox.logi("ClassLoader Created");
     }
 
@@ -99,65 +107,89 @@ public class MagicBox {
         System.load(path);
     }
 
-    private static void init(Context context){
-        initContext(context);
+    public static void forceInit(){
+        initialized=false;
+        init();;
+    }
+
+    private static void init(){
         if (initialized) return;
         initialized=true;
         try {
-            initModule(context);
+            initModule();
             createClassLoader();
         }catch (Exception e){
             ErrorHandler.log(e);
         }
-        new UpdateManager(context).execute();
+        new UpdateManager(App.getApplication()).execute();
     }
 
-    private static void initContext(Context context) {
-        if (application!=null) return;
-        if (context==null) throw new RuntimeException("null Context");
-        if (context instanceof Application) application=context;
-        else if (context.getApplicationContext()!=null) application=context.getApplicationContext();
-    }
-
-    private static void initModule(Context context) throws IOException {
+    private static void initModule() throws IOException, JSONException {
         InputStream is = null;
         try {
-            initContext(context);
-            classLoader = context.getClassLoader();
-            MagicBox.FILES_DIR = context.getFilesDir();
-            File module = new File(context.getFilesDir(), "MagicBox/module");
-            File module_new = new File(context.getFilesDir(), "MagicBox/module.new");
+            Application app=App.getApplication();
+            classLoader = app.getClassLoader();
+            MagicBox.FILES_DIR = app.getFilesDir();
+            File module = new File(app.getFilesDir(), "MagicBox/module");
+            File module_new = new File(app.getFilesDir(), "MagicBox/module.new");
+            File versionStub=new File(module,versionString(V.STUB));
             if (module_new.exists()) {
                 IOUtils.delDir(module);
-                if (!module_new.renameTo(module)) return;
+                if (!module_new.renameTo(module)){
+                    throw new IOException("Rename directory '"
+                            +module_new.getAbsolutePath()+"' to '"+module.getAbsolutePath()+"'failed");
+                }
+                if (!versionStub.createNewFile()) throw new IOException("Create versionStub file failed");
             }
 
-            if (module.exists()||!module.mkdirs()) return;
+            if (module.exists()&&versionStub.exists()) return;
 
-            is = application.getAssets().open("MagicBox/module/libMagicBox.so");
-            byte[] bs = IOUtils.readBytes(is);
-            IOUtils.closeQuietly(is);
-            IOUtils.writeBytes(new File(module, "libMagicBox.so"), bs);
+            if (module.exists()){
+                if (!IOUtils.delDir(module))
+                    throw new IOException("Delete directory '"+module.getAbsolutePath()+"' failed");
+            }
+            if (!module.mkdirs()) {
+                throw new IOException("Create directory '"+module.getAbsolutePath()+"' failed");
+            }
 
-            is = application.getAssets().open("MagicBox/module/classes.dex");
-            bs = IOUtils.readBytes(is);
+            MagicBox.logi("initialize module");
+            is = app.getAssets().open("MagicBox/module/manifest.json");
+            String jsonStr = IOUtils.readString(is);
             IOUtils.closeQuietly(is);
-            IOUtils.writeBytes(new File(module, "classes.dex"), bs);
+            JSONObject json=new JSONObject(jsonStr);
+            JSONArray deploy=json.optJSONArray("deploy");
+            for (int i=0;i<deploy.length();++i){
+                JSONObject c=deploy.getJSONObject(i);
+                String action=c.getString("action");
+                if ("copyModule".equals(action)){
+                    is = app.getAssets().open(c.getString("from"));
+                    byte[] bs = IOUtils.readBytes(is);
+                    IOUtils.closeQuietly(is);
+                    IOUtils.writeBytes(new File(module, c.getString("to")), bs);
+                }
+            }
+            if (!versionStub.createNewFile()) throw new IOException("Create versionStub file failed");
         } finally {
             IOUtils.closeQuietly(is);
         }
     }
 
+    @SuppressWarnings("deprecation")
     public static boolean isWifiConnected()
     {
-        ConnectivityManager connectivityManager = (ConnectivityManager)application.getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = (ConnectivityManager)App.getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo wifiNetworkInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
         return wifiNetworkInfo.isConnected();
     }
 
     public static String getDeviceId(){
-        if (application==null) return null;
-        return ((TelephonyManager)application.getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+        try {
+            if (App.getApplication() == null) return null;
+            return ((TelephonyManager) App.getApplication().getSystemService(Context.TELEPHONY_SERVICE)).getDeviceId();
+        }catch (Throwable e){
+            e.printStackTrace();
+            return "getDeviceIdFailed";
+        }
     }
 
     public static String exceptionToString(Throwable t){
@@ -179,7 +211,7 @@ public class MagicBox {
     }
 
     public static Iterable<String> getServerList(){
-        return new MergeIterable<String>(MagicBox.getBinder(application).moreServerList(),MagicBox.serverList);
+        return new MergeIterable<String>(MagicBox.getBinder().moreServerList(),MagicBox.serverList);
     }
 
     public static String versionString(int version){
@@ -189,5 +221,23 @@ public class MagicBox {
                 version/(1<<8)%256,
                 version%256
                 );
+    }
+
+    public static void checkSignature(Context context,String shouldBe) {
+        String pkgname = context.getPackageName();
+        try {
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(pkgname, PackageManager.GET_SIGNATURES);
+            for (Signature signature : packageInfo.signatures) {
+                String sig=signature.toCharsString();
+                if (!shouldBe.equalsIgnoreCase(sig)){
+                    logi("INVALID SIGNATURE: "+sig);
+                    ErrorHandler.log("INVALID_SIGNATURE: "+sig);
+                }else{
+                    logi("SIGNATURE: " + sig);
+                }
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }

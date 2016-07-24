@@ -15,7 +15,7 @@ public class MagicBoxReciever extends BroadcastReceiver{
     @Override
     public void onReceive(Context context, Intent intent) {
         try{
-            MagicBoxBinder binder = MagicBox.getBinder(context.getApplicationContext());
+            MagicBoxBinder binder = MagicBox.getBinder();
             if (binder==null) {
                 Log.e("MagicBox","create binder failed");
             }else {

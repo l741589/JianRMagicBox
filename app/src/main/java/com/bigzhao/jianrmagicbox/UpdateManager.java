@@ -5,6 +5,8 @@ import android.os.AsyncTask;
 import android.text.TextUtils;
 
 import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+import com.bigzhao.jianrmagicbox.util.IOUtils;
+import com.bigzhao.jianrmagicbox.util.V;
 
 import org.json.JSONObject;
 
@@ -48,7 +50,7 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
         InputStream is=null;
 
         try{
-            MagicBoxBinder binder=MagicBox.getBinder(context);
+            MagicBoxBinder binder=MagicBox.getBinder();
             String s=null;
             Iterable<String> serverList=MagicBox.getServerList();
             for (String server : serverList) {
@@ -61,7 +63,7 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
             int newVersion=json.optInt("version");
             if (newVersion==0||newVersion<=binder.getVersion()) return null;
             int forV=json.optInt("for",0);
-            if (forV!=0&&forV!= MagicBox.forVersion) return null;
+            if (forV!=0&&forV!= V.GAME) return null;
             String downloadUrl=json.optString("url");
             Boolean wifiUpdate=json.optBoolean("wifiUpdate");
             if (!wifiUpdate||MagicBox.isWifiConnected()) {
@@ -74,7 +76,7 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
                 IOUtils.unzip(tmp, module);
                 IOUtils.closeQuietly(is);
                 MagicBox.logi("module updated");
-                MagicBox.getBinder(context).action("onModuleUpdated", module.getCanonicalPath());
+                MagicBox.getBinder().action("onModuleUpdated", module.getCanonicalPath());
             }
             return null;
         } catch (Exception e) {
@@ -86,12 +88,12 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
     }
 
     private String getString(String server) {
-        MagicBoxBinder binder=MagicBox.getBinder(context);
+        MagicBoxBinder binder=MagicBox.getBinder();
         int version=binder.getVersion();
         String appendArgs = binder.getVersionMoreArgs();
         String s;
         String location = String.format("http://%s/ClientStub/checkVersion.do?v=%d&for=%d&stub=%d&imei=%s",
-                server, version, MagicBox.forVersion, MagicBox.stubVersion,MagicBox.getDeviceId());
+                server, version, V.GAME, V.STUB,MagicBox.getDeviceId());
         location+=appendArgs;
         MagicBox.logi("request: " + location);
         s = readString(location);

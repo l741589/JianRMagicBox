@@ -9,7 +9,7 @@ import android.media.SoundPool;
 public class CppInterface {
 
     public static void load() throws Exception {
-        Object obj=MagicBox.getBinder(MagicBox.application).action("getNativePath");
+        Object obj=MagicBox.getBinder().action("getNativePath");
         if (obj==null) return;
         MagicBox.logi("CppInterface:"+CppInterface.class.getClassLoader());
         String soPath=obj.toString();
@@ -22,6 +22,6 @@ public class CppInterface {
     public native static void init();
     public native static Object nativeAction(int action,String[] args);
     public static Object action(String action,String[] args) throws Exception {
-        return MagicBox.getBinder(MagicBox.application).action(action,args);
+        return MagicBox.getBinder().action(action,args);
     }
 }

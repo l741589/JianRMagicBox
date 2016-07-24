@@ -15,7 +15,7 @@ import com.bigzhao.jianrmagicbox.aidl.IMagicBoxBinder;
 public class MagicBoxService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
-        return MagicBox.getBinder(getApplication());
+        return MagicBox.getBinder();
     }
 
 }

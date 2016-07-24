@@ -2,13 +2,16 @@ package com.bigzhao.jianrmagicbox.errorlog;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.format.DateFormat;
 import android.widget.Toast;
 
+import com.bigzhao.jianrmagicbox.App;
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.MagicBoxBinder;
+import com.bigzhao.jianrmagicbox.util.V;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,28 +23,20 @@ import java.lang.ref.WeakReference;
  */
 public class ErrorHandler implements Thread.UncaughtExceptionHandler {
 
-    private static WeakReference<Activity> currentActivity;
+
     private static Thread.UncaughtExceptionHandler defaultHandler;
 
     private static ErrorHandler instance;
 
-    public static void init(Activity activity) {
+    public static void init(Application application) {
         if (instance!=null) return;
         instance=new ErrorHandler();
-        Application app=activity.getApplication();
-        currentActivity=new WeakReference<Activity>(activity);
-        app.registerActivityLifecycleCallbacks(callback);
         defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler(instance);
     }
 
-    public static Activity getCurrentActivity() {
-        if (currentActivity==null) return null;
-        return currentActivity.get();
-    }
-
     public static enum Level{
-        CAUGHT,CRASH,CUSTOM
+        CAUGHT,CRASH,CUSTOM,NATIVE
     }
 
     public static JSONObject createLog(Level level,String message) throws JSONException {
@@ -56,8 +51,8 @@ public class ErrorHandler implements Thread.UncaughtExceptionHandler {
         json.put("device_id", MagicBox.getDeviceId());
         json.put("client_time", DateFormat.format("yy-MM-dd HH:mm:ss", System.currentTimeMillis()));
         json.put("thread",thread!=null?thread.toString():null);
-        json.put("stub_ver",MagicBox.versionString(MagicBox.stubVersion));
-        json.put("game_ver",MagicBox.versionString(MagicBox.forVersion));
+        json.put("stub_ver",MagicBox.versionString(V.STUB));
+        json.put("game_ver",MagicBox.versionString(V.GAME));
         MagicBoxBinder b=MagicBox.safeGetBinder();
         json.put("binder_ver",MagicBox.versionString(b==null?0:b.getVersion()));
         if (message!=null) json.put("message",message);
@@ -68,8 +63,9 @@ public class ErrorHandler implements Thread.UncaughtExceptionHandler {
     @Override
     public void uncaughtException(final Thread thread,final Throwable ex) {
         try {
+            ex.printStackTrace();
             JSONObject json=createLog(Level.CRASH, MagicBox.exceptionToString(ex),thread);
-            Activity a=getCurrentActivity();
+            Activity a= App.getCurrentActivity();
             if (a!=null) Toast.makeText(a,"未知异常："+(ex==null?"null":ex.getMessage())+"\n正在上报",Toast.LENGTH_LONG).show();
             Logger.getInstance().log(json, new Runnable() {
                 @Override
@@ -102,41 +98,15 @@ public class ErrorHandler implements Thread.UncaughtExceptionHandler {
         }
     }
 
-    private static Application.ActivityLifecycleCallbacks callback=new Application.ActivityLifecycleCallbacks() {
-        @Override
-        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
 
+    public static void logNative(String message) {
+        try {
+            JSONObject json = createLog(Level.NATIVE, message);
+            Logger.getInstance().log(json);
+        }catch (JSONException e){
+            e.getCause();
         }
+    }
 
-        @Override
-        public void onActivityStarted(Activity activity) {
-            currentActivity=new WeakReference<Activity>(activity);
-            MagicBox.logi("activity start: "+activity);
-        }
 
-        @Override
-        public void onActivityResumed(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityPaused(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivityStopped(Activity activity) {
-
-        }
-
-        @Override
-        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-
-        }
-
-        @Override
-        public void onActivityDestroyed(Activity activity) {
-
-        }
-    };
 }

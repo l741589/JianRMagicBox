@@ -7,18 +7,22 @@ import android.os.Build;
 
 import com.bigzhao.jianrmagicbox.IActivity;
 import com.bigzhao.jianrmagicbox.MagicBox;
+import com.bigzhao.jianrmagicbox.defaultmodule.DefaultActivityImpl;
+import com.bigzhao.jianrmagicbox.util.V;
 
 /**
  * Created by Roy on 16-6-12.
  */
-public class ActivityImpl implements IActivity {
-    private Activity activity;
+public class ActivityImpl extends DefaultActivityImpl implements IActivity {
+
     public ActivityImpl(Activity activity){
+        super(activity);
         this.activity=activity;
         MagicBox.logi("Activity Created");
     }
 
     public boolean action(){
+        MagicBox.checkSignature(activity, V.SIGNATURE);
         MagicBox.logi("sdkver:" + Build.VERSION.SDK_INT);
         requestExternalStorage();
         return false;

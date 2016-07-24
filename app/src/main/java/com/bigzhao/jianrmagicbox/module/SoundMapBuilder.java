@@ -2,7 +2,8 @@ package com.bigzhao.jianrmagicbox.module;
 
 import android.text.TextUtils;
 
-import com.bigzhao.jianrmagicbox.IOUtils;
+import com.bigzhao.jianrmagicbox.App;
+import com.bigzhao.jianrmagicbox.util.IOUtils;
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
 
@@ -22,9 +23,9 @@ public class SoundMapBuilder {
     public JSONObject map=new JSONObject();
 
     public String build()  throws Exception{
-        File base = (File) MagicBox.getBinder(MagicBox.application).action("getFile", "magicbox:CV");
+        File base = (File) MagicBox.getBinder().action("getFile", "magicbox:CV");
         try {loadPackage(base);}catch (Throwable e){ErrorHandler.log(e);}
-        base = (File) MagicBox.getBinder(MagicBox.application).action("getFile", "inner_magicbox:CV");
+        base = (File) MagicBox.getBinder().action("getFile", "inner_magicbox:CV");
         try {loadPackage(base);}catch (Throwable e){ErrorHandler.log(e);}
         try{loadAssets();}catch (Throwable e){ErrorHandler.log(e);}
         JSONObject json = new JSONObject();
@@ -37,7 +38,7 @@ public class SoundMapBuilder {
     private void loadAssets() throws Exception {
         InputStream is=null;
         try {
-            is=MagicBox.application.getAssets().open("MagicBox/CV/manifest.json");
+            is= App.getApplication().getAssets().open("MagicBox/CV/manifest.json");
             JSONObject json=new JSONObject(IOUtils.readString(is));
             loadMap(json,null,"assets/MagicBox/CV");
             MagicBox.logi("map size:"+map.length());

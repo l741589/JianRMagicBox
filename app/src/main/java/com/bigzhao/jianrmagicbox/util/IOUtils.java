@@ -1,4 +1,4 @@
-package com.bigzhao.jianrmagicbox;
+package com.bigzhao.jianrmagicbox.util;
 
 import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
 
