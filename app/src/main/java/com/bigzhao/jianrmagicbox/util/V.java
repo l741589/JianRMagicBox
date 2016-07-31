@@ -6,7 +6,7 @@ package com.bigzhao.jianrmagicbox.util;
 public class V {
     public static final int GAME=0x02050000;
     public static final int BASE=0x01010000;
-    public static final int STUB=BASE|0x0102;
+    public static final int STUB=BASE|0x0105;
     public static final int BINDER=STUB;
 
 
