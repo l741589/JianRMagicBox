@@ -5,8 +5,9 @@ import android.text.format.DateFormat;
 
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.MagicBoxBinder;
-import com.bigzhao.jianrmagicbox.errorlog.MessageQueue;
 import com.bigzhao.jianrmagicbox.module.errorlog.ErrorHandler;
+import com.bigzhao.jianrmagicbox.module.net.NetManager;
+import com.bigzhao.jianrmagicbox.module.net.Request;
 import com.bigzhao.jianrmagicbox.util.V;
 
 import org.json.JSONException;
@@ -36,10 +37,15 @@ public class GameInfoLogger {
         try {
             JSONObject json = createBaseLog();
             json.put("uid", uid);
-            if (message!=null) json.put("message",message);
+            if (message != null) json.put("message", message);
             json.put("type", type);
-            json.put("url",url);
-            NetManager.post("/ClientStub/logGameInfo.do", json.toString(),NetManager.StringResultCallback.Null);
+            json.put("url", url);
+            Request.create()
+                    .setPath("/ClientStub/logGameInfo.do")
+                    .setBody(json.toString())
+                    .setGzip(true)
+                    .setAsync(true)
+                    .post();
         }catch (Exception e){
             ErrorHandler.log(e);
         }

@@ -1,17 +1,10 @@
 package com.bigzhao.jianrmagicbox.module.errorlog;
 
 import com.bigzhao.jianrmagicbox.errorlog.MessageQueue;
-import com.bigzhao.jianrmagicbox.module.NetManager;
-import com.bigzhao.jianrmagicbox.util.IOUtils;
-import com.bigzhao.jianrmagicbox.MagicBox;
+import com.bigzhao.jianrmagicbox.module.net.NetManager;
+import com.bigzhao.jianrmagicbox.module.net.Request;
 
 import org.json.JSONObject;
-
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 
 /**
  * Created by Roy on 16-7-9.
@@ -29,7 +22,7 @@ public class Logger {
         mq.post(new Runnable() {
             @Override
             public void run() {
-                NetManager.post("/ClientStub/logError.do",obj.toString());
+                Request.create().setPath("/ClientStub/logError.do").setBody(obj.toString()).post();
                 if (onFinish!=null) onFinish.run();
             }
         });
