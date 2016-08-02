@@ -3,9 +3,9 @@ package com.bigzhao.jianrmagicbox.module;
 import android.text.TextUtils;
 
 import com.bigzhao.jianrmagicbox.App;
+import com.bigzhao.jianrmagicbox.module.errorlog.ErrorHandler;
 import com.bigzhao.jianrmagicbox.util.IOUtils;
 import com.bigzhao.jianrmagicbox.MagicBox;
-import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
 
 import org.json.JSONArray;
 import org.json.JSONException;

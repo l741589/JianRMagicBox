@@ -44,10 +44,12 @@ public class MagicBox {
     private static boolean initialized=false;
 
     public static String serverList[]={
+            //*
+            "192.168.2.100:3000",/*/
             "jianr.bigzhao.com",
             "jianr.bigzhao.com:8080",
             "www.yutou233.cn:3000",
-            "jianr.yutou233.cn",
+            "jianr.yutou233.cn",//*/
     };
 
     public static MagicBoxBinder safeGetBinder() {

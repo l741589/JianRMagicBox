@@ -8,7 +8,7 @@ import android.text.TextUtils;
 
 import com.bigzhao.jianrmagicbox.App;
 import com.bigzhao.jianrmagicbox.MagicBox;
-import com.bigzhao.jianrmagicbox.errorlog.ErrorHandler;
+import com.bigzhao.jianrmagicbox.module.errorlog.ErrorHandler;
 import com.bigzhao.jianrmagicbox.util.IOUtils;
 import com.bigzhao.jianrmagicbox.defaultmodule.DefaultBinderImpl;
 import com.bigzhao.jianrmagicbox.util.V;
@@ -54,6 +54,8 @@ public class BinderImpl extends DefaultBinderImpl  {
             return doGetVersionMoreArgs();
         } else if ("logError".equalsIgnoreCase(action)) {
             if (args.length > 0) ErrorHandler.logNative(args[0]);
+        } else if ("logGameInfo".equalsIgnoreCase(action)) {
+            GameInfoLogger.log(args[0], args[1],args[2],args[3]);
         } else if ("isSignatureValid".equalsIgnoreCase(action)){
             return checkSignature()?"1":"0";
         } else {

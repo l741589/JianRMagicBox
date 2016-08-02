@@ -7,6 +7,7 @@ import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -19,12 +20,13 @@ public class Logger {
     private MessageQueue mq=new MessageQueue();
 
     private boolean doLog(String server, JSONObject obj) {
+        URLConnection conn = null;
         try {
             String urlStr = String.format("http://%s/ClientStub/logError.do", server);
             String val=obj.toString();
             MagicBox.logi("do log:"+urlStr,val);
             URL url = new URL(urlStr);
-            URLConnection conn = url.openConnection();
+            conn = url.openConnection();
             conn.setReadTimeout(10000);
             conn.setConnectTimeout(10000);
             conn.setDoInput(true);
@@ -41,6 +43,8 @@ public class Logger {
             return "true".equalsIgnoreCase(ret.optString("success"));
         } catch (Exception e) {
             e.printStackTrace();
+        }finally {
+            if (conn instanceof HttpURLConnection) ((HttpURLConnection) conn).disconnect();
         }
         return false;
     }
