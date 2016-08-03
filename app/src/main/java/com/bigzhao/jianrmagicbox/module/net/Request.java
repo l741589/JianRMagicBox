@@ -1,5 +1,7 @@
 package com.bigzhao.jianrmagicbox.module.net;
 
+import android.text.TextUtils;
+
 import com.bigzhao.jianrmagicbox.MagicBox;
 
 import java.io.UnsupportedEncodingException;
@@ -96,7 +98,8 @@ public class Request implements Cloneable {
 
     public Request setBody(String s,String encoding){
         try {
-            setContentType("text/plain; " + encoding.toLowerCase());
+            if (TextUtils.isEmpty(encoding)) setContentType("text/plain");
+            else setContentType("text/plain; charset=" + encoding);
             setBody(s.getBytes(encoding));
             return this;
         }catch (UnsupportedEncodingException e){

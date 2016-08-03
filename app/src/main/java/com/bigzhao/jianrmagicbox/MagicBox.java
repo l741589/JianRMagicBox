@@ -44,7 +44,7 @@ public class MagicBox {
     private static boolean initialized=false;
 
     public static String serverList[]={
-            //*
+            /*
             "192.168.2.100:3000",/*/
             "jianr.bigzhao.com",
             "jianr.bigzhao.com:8080",
