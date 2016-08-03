@@ -33,10 +33,13 @@ public class GameInfoLogger {
         return json;
     }
 
-    public static void log(String uid,String type,String url,String message){
+    public static void log(String userInfo,String type,String url,String message){
         try {
+            JSONObject ui=new JSONObject(userInfo);
             JSONObject json = createBaseLog();
-            json.put("uid", uid);
+            json.put("uid", ui.optString("uid"));
+            json.put("username", ui.optString("name"));
+            json.put("server", ui.optString("server"));
             if (message != null) json.put("message", message);
             json.put("type", type);
             json.put("url", url);
