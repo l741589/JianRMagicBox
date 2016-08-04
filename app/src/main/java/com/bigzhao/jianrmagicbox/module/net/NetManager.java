@@ -52,7 +52,11 @@ public class NetManager {
             GZIPOutputStream gos=null;
             try {
                 String urlStr = String.format("%s://%s/%s", req.getSchema(),server,req.getPath());
-                MagicBox.logi("POST:" + urlStr);
+                if (!hasBody){
+                    String q=req.generateQuery();
+                    if (q!=null) urlStr+="?"+q;
+                }
+                MagicBox.logi(req.getMethod()+":" + urlStr);
                 URL url = new URL(urlStr);
                 conn = (HttpURLConnection)url.openConnection();
                 conn.setReadTimeout(10000);
@@ -65,6 +69,10 @@ public class NetManager {
                 conn.setRequestMethod(req.getMethod().toUpperCase());
                 conn.connect();
                 if (hasBody) {
+                    if (req.getBody()==null){
+                        String q=req.generateQuery();
+                        req.setBody(q.getBytes(req.getEncoding()));
+                    }
                     os = conn.getOutputStream();
                     if (req.isGzip()){
                         gos=new GZIPOutputStream(os);

@@ -7,8 +7,13 @@ import android.content.pm.Signature;
 import android.text.TextUtils;
 
 import com.bigzhao.jianrmagicbox.App;
+import com.bigzhao.jianrmagicbox.CppInterface;
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.module.errorlog.ErrorHandler;
+import com.bigzhao.jianrmagicbox.module.net.Request;
+import com.bigzhao.jianrmagicbox.module.net.Response;
+import com.bigzhao.jianrmagicbox.module.net.ResultCallback;
+import com.bigzhao.jianrmagicbox.module.util.Utils;
 import com.bigzhao.jianrmagicbox.util.IOUtils;
 import com.bigzhao.jianrmagicbox.defaultmodule.DefaultBinderImpl;
 import com.bigzhao.jianrmagicbox.util.V;
@@ -58,10 +63,29 @@ public class BinderImpl extends DefaultBinderImpl  {
             GameInfoLogger.log(args[0], args[1],args[2],args[3]);
         } else if ("isSignatureValid".equalsIgnoreCase(action)){
             return checkSignature()?"1":"0";
-        } else {
+        } else if ("updateUserConfig".equalsIgnoreCase(action)){
+            updateUserConfig(args[0]);
+        }else{
             return super.action(action, args);
         }
         return null;
+    }
+
+    private void updateUserConfig(String arg) throws JSONException {
+        JSONObject obj=new JSONObject(arg);
+        MagicBox.logi("updateUserConfig:"+arg);
+        Request.create()
+                .setPath("/ClientStub/getUserConfig.do")
+                .setParams(Utils.jsonToMap(obj))
+                .setCallback(new ResultCallback() {
+                    @Override
+                    public void onResult(Response result) {
+                        if (result.isSuccess()) {
+                            MagicBox.logi("updateUserConfig:"+result);
+                            CppInterface.nativeAction(1001, new String[]{result.getBody().toString()});
+                        }
+                    }
+                }).get();
     }
 
     private String doGetVersionMoreArgs() {

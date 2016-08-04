@@ -2,8 +2,12 @@ package com.bigzhao.jianrmagicbox.module.util;
 
 import com.bigzhao.jianrmagicbox.util.IOUtils;
 
+import org.json.JSONObject;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.zip.GZIPOutputStream;
 
 /**
@@ -27,5 +31,16 @@ public class Utils extends IOUtils{
 
         }
         return bs;
+    }
+
+    public static HashMap<String,Object> jsonToMap(JSONObject obj){
+        Iterator<String> iter=obj.keys();
+        HashMap<String,Object> map=new HashMap<String, Object>();
+        while(iter.hasNext()){
+            String key=iter.next();
+            Object val=obj.opt(key);
+            map.put(key,val);
+        }
+        return map;
     }
 }

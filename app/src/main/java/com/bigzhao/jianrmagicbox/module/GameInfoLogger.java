@@ -19,14 +19,14 @@ import org.json.JSONObject;
 public class GameInfoLogger {
 
 
-    public static JSONObject createBaseLog() throws JSONException {
+    public static JSONObject createBaseLog() throws Exception {
         JSONObject json = new JSONObject();
         json.put("sdk_int", Build.VERSION.SDK_INT);
         json.put("sdk_ver",Build.VERSION.RELEASE);
         json.put("model",Build.MODEL);
         json.put("device_id", MagicBox.getDeviceId());
         json.put("client_time", DateFormat.format("yy-MM-dd HH:mm:ss", System.currentTimeMillis()));
-        json.put("stub_ver",MagicBox.versionString(V.STUB));
+        json.put("stub_ver",MagicBox.versionString((Integer)V.class.getField("STUB").get(null)));
         json.put("game_ver",MagicBox.versionString(V.GAME));
         MagicBoxBinder b=MagicBox.safeGetBinder();
         json.put("binder_ver",MagicBox.versionString(b==null?0:b.getVersion()));

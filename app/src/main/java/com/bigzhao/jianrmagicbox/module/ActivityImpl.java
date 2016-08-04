@@ -8,6 +8,7 @@ import android.os.Build;
 import com.bigzhao.jianrmagicbox.IActivity;
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.defaultmodule.DefaultActivityImpl;
+import com.bigzhao.jianrmagicbox.module.net.Request;
 import com.bigzhao.jianrmagicbox.util.V;
 
 /**

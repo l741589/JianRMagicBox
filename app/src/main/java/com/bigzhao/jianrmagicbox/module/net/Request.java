@@ -5,13 +5,16 @@ import android.text.TextUtils;
 import com.bigzhao.jianrmagicbox.MagicBox;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Roy on 16-8-2.
  */
 public class Request implements Cloneable {
     private String method = "GET";
+    private String encoding = "UTF-8";
     private HashMap<String, String> headers = new HashMap<String, String>();
     private boolean async = false;
     private ResultCallback callback = null;
@@ -20,11 +23,22 @@ public class Request implements Cloneable {
     private String path;
     private byte[] body;
     private boolean gzip = false;
+    private Map<String,Object> params;
 
     public static Request create(){
         return new Request();
     }
+
+    public String getEncoding() {
+        return encoding;
+    }
+
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
     public String getMethod() {
+
         return method;
     }
 
@@ -93,7 +107,7 @@ public class Request implements Cloneable {
     }
 
     public Request setBody(String s){
-        return setBody(s,"UTF-8");
+        return setBody(s,encoding);
     }
 
     public Request setBody(String s,String encoding){
@@ -140,6 +154,37 @@ public class Request implements Cloneable {
 
     public Request setContentType(String contentType){
         return addHeader("Content-Type",contentType);
+    }
+
+    public Map<String, Object> getParams() {
+        return params;
+    }
+
+    public Request setParams(Map<String, Object> params) {
+        this.params = params;
+        return this;
+    }
+
+    public Request addParam(String key,Object val){
+        if (params==null) params=new HashMap<String, Object>();
+        params.put(key,val);
+        return this;
+    }
+
+    public String generateQuery(){
+        try {
+            if (params == null||params.size()==0) return null;
+            boolean start = true;
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<String, Object> e : params.entrySet()) {
+                if (start) start = false;
+                else sb.append("&");
+                sb.append(e.getKey()).append("=").append(URLEncoder.encode(String.valueOf(e.getValue()), encoding));
+            }
+            return sb.toString();
+        }catch (Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
     public Response exec(){
