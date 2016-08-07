@@ -29,7 +29,7 @@ public class MagicBoxReciever extends BroadcastReceiver{
                 }
                 binder.action(action, args);
             }
-        } catch (Exception e) {
+        } catch (Throwable e) {
             ErrorHandler.log(e);
         }
     }

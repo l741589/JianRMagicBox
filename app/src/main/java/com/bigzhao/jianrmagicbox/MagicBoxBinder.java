@@ -20,7 +20,7 @@ public abstract class MagicBoxBinder extends com.bigzhao.jianrmagicbox.aidl.IMag
             Object o = action(action, args);
             if (o == null) return null;
             return o.toString();
-        }catch (Exception e){
+        }catch (Throwable e){
             ErrorHandler.log(e);
             if (Build.VERSION.SDK_INT>=15) {
                 throw new RemoteException(MagicBox.exceptionToString(e));
@@ -45,7 +45,7 @@ public abstract class MagicBoxBinder extends com.bigzhao.jianrmagicbox.aidl.IMag
         try {
             String s=(String)action("$moreVersionArgs");
             return s==null?"":s;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             ErrorHandler.log(e);
         }
         return "";

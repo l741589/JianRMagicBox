@@ -79,7 +79,7 @@ public class UpdateManager extends AsyncTask<Object,Object,Object>{
                 MagicBox.getBinder().action("onModuleUpdated", module.getCanonicalPath());
             }
             return null;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             ErrorHandler.log(e);
             return null;
         } finally {

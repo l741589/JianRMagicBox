@@ -24,6 +24,17 @@ public class Request implements Cloneable {
     private byte[] body;
     private boolean gzip = false;
     private Map<String,Object> params;
+    private Response mock=null;
+
+    public Response getMock() {
+        return mock;
+    }
+
+    public Request setMock(Response mock) {
+        this.mock = mock;
+        return this;
+    }
+
 
     public static Request create(){
         return new Request();

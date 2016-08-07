@@ -2,6 +2,8 @@ package com.bigzhao.jianrmagicbox.module.net;
 
 
 import android.content.res.Resources;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.bigzhao.jianrmagicbox.MagicBox;
 import com.bigzhao.jianrmagicbox.errorlog.MessageQueue;
@@ -24,16 +26,27 @@ public class NetManager {
 
 
     private static MessageQueue mq=new MessageQueue();
+    private static Handler mainHandler=new Handler(Looper.getMainLooper());
 
     public static Response request(final Request req){
         if (req.isAsync()){
             mq.post(new Runnable() {
                 @Override
                 public void run() {
-                    Request req2 = req.clone();
-                    req2.setAsync(false);
-                    Response bs=requestSync(req2);
-                    if (req.getCallback()!=null) req.getCallback().onResult(bs);
+                    Response res=null;
+                    try {
+                        Request req2 = req.clone();
+                        req2.setAsync(false);
+                        res = requestSync(req2);
+                    }catch (Throwable e){
+                        ErrorHandler.log(e);
+                        res=new Response(e);
+                    }
+                    try {
+                        req.getCallback().onResult(res);
+                    }catch (Throwable e){
+                        ErrorHandler.log(e);
+                    }
                 }
             });
             return null;
@@ -42,9 +55,12 @@ public class NetManager {
         }
     }
 
-    private static Response requestSync(Request req) {
+    private static  Response requestSync(Request req) {
+        if (req==null) return new Response(new NullPointerException());
+        if (req.getMock()!=null) return req.getMock();
         if (req.getPath().startsWith("/")) req.setPath(req.getPath().substring(1));
         boolean hasBody="POST".equalsIgnoreCase(req.getMethod())||"PUT".equalsIgnoreCase(req.getMethod());
+        Throwable lastThrowable=null;
         for (String server:req.getHosts()) {
             HttpURLConnection conn = null;
             InputStream is=null;
@@ -86,11 +102,13 @@ public class NetManager {
                 is = conn.getInputStream();
                 byte[] bs=IOUtils.readBytes(is);
                 Response res=new Response();
-                res.data=bs;
-                res.request=req;
+                res.setSuccess(true);
+                res.setData(bs);
+                res.setRequest(req);
                 return res;
             } catch (Exception e) {
                 e.printStackTrace();
+                lastThrowable=e;
             } finally {
                 if (conn!=null) conn.disconnect();
                 IOUtils.closeQuietly(is);
@@ -98,7 +116,7 @@ public class NetManager {
                 IOUtils.closeQuietly(gos);
             }
         }
-        return null;
+        return new Response(lastThrowable);
     }
 
 

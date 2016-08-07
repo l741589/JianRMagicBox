@@ -35,6 +35,7 @@ public class BinderImpl extends DefaultBinderImpl  {
     public BinderImpl(Context context) {
         super(context);
         MagicBox.logi("Binder Created");
+
     }
 
     @Override
@@ -44,48 +45,66 @@ public class BinderImpl extends DefaultBinderImpl  {
 
     @Override
     public Object action(String action, String... args) throws Exception{
-        MagicBox.logi("%s(%s)", action, TextUtils.join(", ", args));
-        if ("install".equalsIgnoreCase(action)) {
-            copy(args[0], args[1]);
-        } else if ("uninstall".equalsIgnoreCase(action)) {
-            del(args[0]);
-        } else if ("install_cv".equalsIgnoreCase(action)) {
-            install_cv(args[0], args[1]);
-        } else if ("buildSoundMap".equals(action)) {
-            return new SoundMapBuilder().build();
-        } else if ("getNativePath".equalsIgnoreCase(action)) {
-            return getNativePath();
-        }else if ("$moreVersionArgs".equalsIgnoreCase(action)){
-            return doGetVersionMoreArgs();
-        } else if ("logError".equalsIgnoreCase(action)) {
-            if (args.length > 0) ErrorHandler.logNative(args[0]);
-        } else if ("logGameInfo".equalsIgnoreCase(action)) {
-            GameInfoLogger.log(args[0], args[1],args[2],args[3]);
-        } else if ("isSignatureValid".equalsIgnoreCase(action)){
-            return checkSignature()?"1":"0";
-        } else if ("updateUserConfig".equalsIgnoreCase(action)){
-            updateUserConfig(args[0]);
-        }else{
-            return super.action(action, args);
+        try {
+            MagicBox.logi("%s(%s)", action, TextUtils.join(", ", args));
+            if ("install".equalsIgnoreCase(action)) {
+                copy(args[0], args[1]);
+            } else if ("uninstall".equalsIgnoreCase(action)) {
+                del(args[0]);
+            } else if ("install_cv".equalsIgnoreCase(action)) {
+                install_cv(args[0], args[1]);
+            } else if ("buildSoundMap".equals(action)) {
+                return new SoundMapBuilder().build();
+            } else if ("getNativePath".equalsIgnoreCase(action)) {
+                return getNativePath();
+            } else if ("$moreVersionArgs".equalsIgnoreCase(action)) {
+                return doGetVersionMoreArgs();
+            } else if ("logError".equalsIgnoreCase(action)) {
+                if (args.length > 0) ErrorHandler.logNative(args[0]);
+            } else if ("logGameInfo".equalsIgnoreCase(action)) {
+                GameInfoLogger.log(args[0], args[1], args[2], args[3]);
+            } else if ("isSignatureValid".equalsIgnoreCase(action)) {
+                return checkSignature() ? "1" : "0";
+            } else if ("updateUserConfig".equalsIgnoreCase(action)) {
+                updateUserConfig(args[0]);
+            } else if ("getUserInfo".equalsIgnoreCase(action)) {
+                return new String(Utils.encrypt(IOUtils.readBytes(getFile("files:MagicBox/uf"))));
+            } else {
+                return super.action(action, args);
+            }
+            return null;
+        }catch (Throwable e){
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
     private void updateUserConfig(String arg) throws JSONException {
         JSONObject obj=new JSONObject(arg);
         MagicBox.logi("updateUserConfig:"+arg);
+
         Request.create()
                 .setPath("/ClientStub/getUserConfig.do")
                 .setParams(Utils.jsonToMap(obj))
                 .setCallback(new ResultCallback() {
                     @Override
                     public void onResult(Response result) {
-                        if (result.isSuccess()) {
+                        if (result!=null&&result.isSuccess()) {
                             MagicBox.logi("updateUserConfig:"+result);
                             CppInterface.nativeAction(1001, new String[]{result.getBody().toString()});
                         }
                     }
                 }).get();
+
+        try {
+            IOUtils.writeBytes(getFile("files:MagicBox/uf"),Utils.encrypt(arg.getBytes()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            GameInfoLogger.retry(this);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private String doGetVersionMoreArgs() {

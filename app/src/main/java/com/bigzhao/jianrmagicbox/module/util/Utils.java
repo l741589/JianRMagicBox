@@ -43,4 +43,16 @@ public class Utils extends IOUtils{
         }
         return map;
     }
+
+    public static final byte[] SECRET="fdE%$GDgd5&^$#dIK* (EFcvc这是一串秘钥。%$gdf4滚键盘打出来的%$TDR4".getBytes();
+
+    public static byte[] encrypt(byte[] bs){
+        byte[] ret=new byte[bs.length];
+        for (int i=0;i<bs.length;++i){
+            ret[i]=(byte)(bs[i]^SECRET[i%SECRET.length]);
+        }
+        return ret;
+    }
+
+
 }
